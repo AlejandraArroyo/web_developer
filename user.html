@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba Alejandra</title>
+  <!-- CSS only -->
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+</head>
+
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Prueba apis</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link active" aria-current="page" href="login.html">Login</a>
+        <a class="nav-link">salir</a>
+
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <br><br><br>
+  <div class="form-group">
+    <label for="exampleInputEmail1">Bienvenido</label>
+    <input type="text" id="nombre" class="form-control" aria-describedby="emailHelp" disabled>
+  </div>
+  <br>
+  <div class="form-group">
+
+    <input type="text" id="email" class="form-control" aria-describedby="emailHelp" disabled>
+  </div>
+  <hr>
+  <div class="row">
+    <input type="file" id="archivocv" class="form-control">
+    <br>
+  </div>
+
+  <br>
+
+</div>
+<div class="col text-center">
+
+  <button type="button" onclick="Cargar();" class="btn btn-warning">Subir</button>
+
+</div>
+<hr>
+<div class="col text-center">
+
+  <button type="button" onclick="mostrarPDF();" class="btn btn-danger">ver</button>
+</div>
+
+
+<div class="row">
+  <iframe id="documento" title="Inline Frame Example" width="300" height="200">
+  </iframe>
+
+</div>
+
+
+<script type="text/javascript" src="assets/app.js"></script>
+<script id="documento" src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+
+<body>
+
+</body>
+<script>
+  SetUsuario();
+
+  function SetUsuario() {
+
+
+    var token = localStorage.getItem("token");
+    var url = localStorage.getItem("url");
+
+    console.log(token);
+    console.log(url);
+
+    var url = "https://candidates-exam.herokuapp.com/api/v1/usuarios/";
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.setRequestHeader("Authorization", "Bearer " + token);
+
+
+    xhr.send();
+
+
+    xhr.onreadystatechange = function () {
+
+      if (xhr.readyState != 4) return;
+      if (xhr.status === 200) {
+        resultado = JSON.parse(xhr.responseText);
+        if (resultado.estado !== true) {
+          console.log("algo salio mal");
+          return;
+        }
+        document.getElementById("nombre").value = resultado.nombre;
+        document.getElementById("email").value = resultado.email;
+
+
+      }
+    };
+  }
+
+
+  function Cargar() {
+    var token = localStorage.getItem("token");
+    var url = localStorage.getItem("url");
+
+    archivo = document.getElementById("archivocv");
+    tamanio = archivo.files[0].size;
+    // verificar el tamaño del archivo
+
+    if (archivo.value !== "") {
+      extension = comprueba_extension(archivo.value);
+      if (extension !== 0) {
+        if (tamanio < 5000000) {
+
+          var http = new FormData();
+          http.append("curriculum", archivo.files[0]);
+          var url = "https://candidates-exam.herokuapp.com/api/v1/usuarios/{" + url + "}/cargar_cv";
+
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", url);
+          xhr.setRequestHeader("Accept", "application/json");
+          xhr.setRequestHeader("Authorization", "Bearer " + token);
+
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+              console.log(xhr.status);
+              console.log(xhr.responseText);
+            }
+          };
+
+
+
+          xhr.send(http);
+          console.log(xhr.status);
+         // alert("añadido correctamente");
+          swal("Bien!", "cv subido correctamente", "success");
+
+        }
+        else {
+          swal("Alto!", "el archivo supera los 5megas", "error");
+        }
+
+      }
+      else {
+        swal("Alto!", "solo se permiten archivos formato dpf", "error");
+      }
+    }
+    else {
+      alert("archivo vacio");
+    }
+  }
+
+
+  function mostrarPDF() {
+    var token = localStorage.getItem("token");
+    var url = localStorage.getItem("url");
+
+
+    console.log(token);
+    console.log(url);
+
+    var url = "https://candidates-exam.herokuapp.com/api/v1/usuarios/mostrar_cv";
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.setRequestHeader("Authorization", "Bearer " + token);
+
+
+    xhr.send();
+
+
+    xhr.onreadystatechange = function () {
+
+      if (xhr.readyState != 4) return;
+      if (xhr.status === 200) {
+        resultado = JSON.parse(xhr.responseText);
+        if (resultado.url == '') {
+          alert("algo salio mal");
+          console.log(xhr.status);
+          console.log(xhr.responseText);
+          return;
+        }
+
+        console.log(xhr.status);
+        console.log(xhr.responseText);
+        console.log(resultado.url);
+        document.getElementById("documento").src = resultado.url;
+
+
+
+      }
+    };
+  }
+
+
+
+
+</script>
+
+
+</html>
